@@ -10,7 +10,7 @@ const specs = [
 
 export default function SpecsSection() {
   return (
-    <section id="specs" className="py-24 bg-gray-950 px-6 border-t border-gray-900">
+    <section id="specs" className="py-24 bg-black-950 px-6 border-t border-gray-900">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">

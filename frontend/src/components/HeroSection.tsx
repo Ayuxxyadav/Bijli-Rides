@@ -58,7 +58,7 @@ export default function HeroSection() {
     };
   }, []);
 
-  // 2. Canvas Rendering (Right-Aligned in Canvas Space)
+  // 2. Canvas Rendering
   useEffect(() => {
     if (!isLoaded) return;
     const canvas = canvasRef.current;
@@ -86,38 +86,36 @@ export default function HeroSection() {
 
       ctx.save();
       ctx.scale(dpr, dpr);
-      
-      // Match exact frame black color
-      ctx.fillStyle = "#050505";
+
+      // Studio dark background fill
+      ctx.fillStyle = "#0c0b0e";
       ctx.fillRect(0, 0, width, height);
 
       const isDesktop = width >= 1024;
 
       if (isDesktop) {
-        // Render inside right 55% area of screen
-        const targetAreaWidth = width * 0.58;
+        const targetAreaWidth = width * 0.52;
         const hRatio = targetAreaWidth / img.naturalWidth;
-        const vRatio = height / img.naturalHeight;
+        const vRatio = (height * 0.95) / img.naturalHeight;
+        const ratio = Math.min(hRatio, vRatio) * 0.99;
+
+        const drawW = img.naturalWidth * ratio;
+        const drawH = img.naturalHeight * ratio;
+
+        const shiftX = width * 0.47 + (targetAreaWidth - drawW) / 2;
+        const shiftY = (height - drawH) / 2;
+
+        ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, shiftX, shiftY, drawW, drawH);
+      } else {
+        const hRatio = (width * 0.95) / img.naturalWidth;
+        const vRatio = (height * 0.52) / img.naturalHeight;
         const ratio = Math.min(hRatio, vRatio) * 0.92;
 
         const drawW = img.naturalWidth * ratio;
         const drawH = img.naturalHeight * ratio;
 
-        const shiftX = width * 0.42 + (targetAreaWidth - drawW) / 2;
-        const shiftY = (height - drawH) / 2;
-
-        ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, shiftX, shiftY, drawW, drawH);
-      } else {
-        // Mobile fallback center
-        const hRatio = width / img.naturalWidth;
-        const vRatio = (height * 0.5) / img.naturalHeight;
-        const ratio = Math.min(hRatio, vRatio) * 0.95;
-
-        const drawW = img.naturalWidth * ratio;
-        const drawH = img.naturalHeight * ratio;
-
         const shiftX = (width - drawW) / 2;
-        const shiftY = height * 0.45 + (height * 0.5 - drawH) / 2;
+        const shiftY = height * 0.44 + (height * 0.52 - drawH) / 2;
 
         ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, shiftX, shiftY, drawW, drawH);
       }
@@ -139,180 +137,230 @@ export default function HeroSection() {
     };
   }, [isLoaded, smoothProgress]);
 
-  // Storyline Steps Transforms
-  const step1Opacity = useTransform(smoothProgress, [0, 0.12, 0.22], [1, 1, 0]);
-  const step1Y = useTransform(smoothProgress, [0, 0.22], [0, -30]);
+  // Storyline Steps Transforms with Consistent Smooth Offsets
+  const step1Opacity = useTransform(smoothProgress, [0, 0.14, 0.22], [1, 1, 0]);
+  const step1Y = useTransform(smoothProgress, [0, 0.22], [0, -20]);
+  const step1Pointer = useTransform(smoothProgress, (v) => (v < 0.22 ? "auto" : "none"));
 
-  const step2Opacity = useTransform(smoothProgress, [0.25, 0.33, 0.47, 0.53], [0, 1, 1, 0]);
-  const step2Y = useTransform(smoothProgress, [0.25, 0.33, 0.47, 0.53], [30, 0, 0, -30]);
+  const step2Opacity = useTransform(smoothProgress, [0.24, 0.32, 0.46, 0.52], [0, 1, 1, 0]);
+  const step2Y = useTransform(smoothProgress, [0.24, 0.32, 0.46, 0.52], [20, 0, 0, -20]);
+  const step2Pointer = useTransform(smoothProgress, (v) => (v >= 0.24 && v <= 0.52 ? "auto" : "none"));
 
-  const step3Opacity = useTransform(smoothProgress, [0.56, 0.64, 0.76, 0.82], [0, 1, 1, 0]);
-  const step3Y = useTransform(smoothProgress, [0.56, 0.64, 0.76, 0.82], [30, 0, 0, -30]);
+  const step3Opacity = useTransform(smoothProgress, [0.54, 0.62, 0.76, 0.82], [0, 1, 1, 0]);
+  const step3Y = useTransform(smoothProgress, [0.54, 0.62, 0.76, 0.82], [20, 0, 0, -20]);
+  const step3Pointer = useTransform(smoothProgress, (v) => (v >= 0.54 && v <= 0.82 ? "auto" : "none"));
 
-  const step4Opacity = useTransform(smoothProgress, [0.85, 0.92, 1], [0, 1, 1]);
-  const step4Y = useTransform(smoothProgress, [0.85, 0.92, 1], [30, 0, 0]);
+  const step4Opacity = useTransform(smoothProgress, [0.84, 0.92, 1], [0, 1, 1]);
+  const step4Y = useTransform(smoothProgress, [0.84, 0.92, 1], [20, 0, 0]);
+  const step4Pointer = useTransform(smoothProgress, (v) => (v >= 0.84 ? "auto" : "none"));
 
   return (
     <div
       id="hero"
       ref={containerRef}
-      className="relative h-[480vh] bg-[#050505] text-white selection:bg-emerald-500 selection:text-black font-sans antialiased"
+      className="relative h-[480vh] bg-[#0c0b0e] text-white selection:bg-emerald-500 selection:text-black font-sans antialiased"
     >
+      <style>{`
+        html, body {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          background-color: #0c0b0e;
+        }
+        html::-webkit-scrollbar, body::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+
       {/* Loading Screen */}
       {!isLoaded && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#050505]">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0c0b0e]">
           <div className="flex items-center gap-2 mb-4">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_12px_#34d399]" />
             <span className="text-xs font-mono tracking-[0.3em] uppercase text-emerald-400 font-semibold">
-              Loading Bijliride Telemetry
+              Calibrating Chassis Telemetry
             </span>
           </div>
-          <div className="w-60 h-[2px] bg-white/10 rounded-full overflow-hidden">
+          <div className="w-64 h-[2px] bg-white/10 rounded-full overflow-hidden">
             <div
-              className="h-full bg-emerald-500 transition-all duration-150 shadow-[0_0_10px_#10b981]"
+              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-150 shadow-[0_0_10px_#10b981]"
               style={{ width: `${loadPercent}%` }}
             />
           </div>
-          <span className="text-xs font-mono text-zinc-500 mt-3">{loadPercent}% Complete</span>
+          <span className="text-[11px] font-mono text-zinc-500 mt-3">{loadPercent}% Synchronized</span>
         </div>
       )}
 
       {/* Sticky Viewport */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-between">
-        
-        {/* Fullscreen Canvas with Right-Aligned Image */}
+      <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-between bg-[#0c0b0e]">
+        {/* Layer 1: Studio Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#080709] via-[#0c0b0e] to-[#121014] z-0" />
+
+        {/* Layer 2: Ambient Floor Glow */}
+        <div className="absolute right-[2%] bottom-[10%] w-[750px] h-[350px] bg-[#221f26]/35 rounded-[100%] blur-[120px] pointer-events-none z-0" />
+
+        {/* Layer 3: Canvas */}
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 w-full h-full block z-0 pointer-events-none"
+          className="absolute inset-0 w-full h-full block z-[1] pointer-events-none"
         />
 
-        {/* Ambient Emerald Lights behind the bike */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-emerald-500/10 rounded-full blur-[160px] pointer-events-none z-0" />
-        <div className="absolute left-0 top-1/4 w-[350px] h-[350px] bg-teal-500/5 rounded-full blur-[140px] pointer-events-none z-0" />
+        {/* Layer 4: Vignette overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#0c0b0e] via-[#0c0b0e]/75 to-transparent lg:from-[#0c0b0e] lg:via-[#0c0b0e]/50 lg:to-transparent z-[2] pointer-events-none" />
 
-        {/* Left Side Content Container */}
-        <div className="relative z-10 w-full lg:w-[48%] h-full flex flex-col justify-center px-6 sm:px-12 md:px-16 lg:pl-20 pointer-events-none">
-          
-          {/* STEP 1: Main Hero Pitch */}
+        {/* Left Side Content Container with CSS Grid Overlay */}
+        <div className="relative z-10 w-full lg:w-[48%] h-full grid grid-cols-1 items-center px-6 sm:px-12 md:px-16 lg:pl-20 pointer-events-none">
+
+          {/* STEP 1: Main Platform Pitch */}
           <motion.div
-            style={{ opacity: step1Opacity, y: step1Y }}
-            className="absolute inset-x-6 sm:inset-x-12 md:inset-x-16 lg:left-20 lg:right-8 flex flex-col justify-center pointer-events-auto"
+            style={{ opacity: step1Opacity, y: step1Y, pointerEvents: step1Pointer }}
+            className="col-start-1 row-start-1 flex flex-col justify-start max-w-xl py-6"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-[11px] font-mono uppercase tracking-widest w-fit mb-6 shadow-[0_0_15px_rgba(16,185,129,0.15)]">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              Next-Gen Urban EV
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-[11px] font-mono tracking-[0.28em] uppercase text-emerald-400 font-medium">
+                1.BOOT
+              </span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.08]">
-              Electrify Your Commute, <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500">
-                Save More Everyday
+            <h1 className="text-3xl sm:text-5xl lg:text-[3.25rem] font-black tracking-tight text-white leading-[1.08] uppercase">
+              Electrify Your Ride,
+              <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-200 to-emerald-500 font-extrabold">
+                Save More every day
               </span>
             </h1>
 
-            <p className="mt-5 text-zinc-400 text-sm sm:text-base leading-relaxed max-w-lg">
-              Switch to smart electric mobility with <strong className="text-white font-semibold">Bijliride</strong> — ₹0.15/km running cost, modular battery swap, and real-time smart diagnostics.
+            <p className="mt-4 text-[#9e9aa6] text-sm sm:text-base leading-relaxed max-w-lg border-l-2 border-white/10 pl-4">
+              Switch to high-density smart electric transit. Engineered with ultra-low running overhead, continuous diagnostics, and sub-60s dock swaps.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3 mt-6">
+              <span className="px-3 py-1 rounded-md bg-[#16141c] border border-white/10 text-xs font-mono text-zinc-300">
+                ₹0.15/km Cost
+              </span>
+              <span className="px-3 py-1 rounded-md bg-[#16141c] border border-white/10 text-xs font-mono text-zinc-300">
+                AI Diagnostics
+              </span>
+              <span className="px-3 py-1 rounded-md bg-[#16141c] border border-white/10 text-xs font-mono text-emerald-400">
+                Modular Architecture
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4 mt-8">
+              <button className="relative group px-8 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs font-mono uppercase tracking-widest transition-all shadow-[0_0_25px_rgba(16,185,129,0.35)] active:scale-[0.98]">
+                Book Test Ride ↗
+              </button>
+              <button className="px-7 py-3.5 rounded-xl bg-[#17151d] hover:bg-[#201e27] text-zinc-200 font-mono text-xs uppercase tracking-wider border border-white/10 transition-all">
+                Telemetry Specs
+              </button>
+            </div>
+          </motion.div>
+
+          {/* STEP 2: Powertrain Specs */}
+          <motion.div
+            style={{ opacity: step2Opacity, y: step2Y, pointerEvents: step2Pointer }}
+            className="col-start-1 row-start-1 flex flex-col justify-start max-w-xl py-6"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-emerald-400 font-medium">
+                2.PROPULSION
+              </span>
+            </div>
+
+            <h2 className="text-3xl sm:text-5xl lg:text-[3.25rem] font-black text-white tracking-tight uppercase leading-[1.08]">
+              Instant PMSM <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
+                Hub Motor Core
+              </span>
+            </h2>
+
+            <p className="mt-4 text-[#9e9aa6] text-sm sm:text-base leading-relaxed max-w-md border-l-2 border-emerald-500/30 pl-4">
+              Integrated magnetic stator engineered directly into the wheel rim for lag-free torque delivery and superior hill climbing efficiency.
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 mt-6 max-w-md">
+              <div className="p-4 rounded-xl bg-[#141219]/90 border border-emerald-500/20 backdrop-blur-xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-emerald-400" />
+                <div className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Peak Power</div>
+                <div className="text-3xl font-black text-white mt-1 font-mono tracking-tight">4.2 <span className="text-sm text-emerald-400 font-normal">kW</span></div>
+                <div className="text-[10px] font-mono text-emerald-400/80 mt-1">94.8% Efficiency</div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-[#141219]/90 border border-white/10 backdrop-blur-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-white/30" />
+                <div className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Wheel Torque</div>
+                <div className="text-3xl font-black text-emerald-400 mt-1 font-mono tracking-tight">85 <span className="text-sm text-white font-normal">Nm</span></div>
+                <div className="text-[10px] font-mono text-zinc-400 mt-1">0-40 in 3.1s</div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* STEP 3: Energy & Intelligence */}
+          <motion.div
+            style={{ opacity: step3Opacity, y: step3Y, pointerEvents: step3Pointer }}
+            className="col-start-1 row-start-1 flex flex-col justify-start max-w-xl py-6"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-emerald-400 font-medium">
+                3.ENERGY
+              </span>
+            </div>
+
+            <h2 className="text-3xl sm:text-5xl lg:text-[3.25rem] font-black text-white tracking-tight uppercase leading-[1.08]">
+              Dock Swap <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
+                Cell Array & ECU
+              </span>
+            </h2>
+
+            <p className="mt-4 text-[#9e9aa6] text-sm sm:text-base leading-relaxed max-w-md border-l-2 border-emerald-500/30 pl-4">
+              IP67-rated cylindrical lithium cells linked to a 32-bit automotive ECU for microsecond-level thermal and current monitoring.
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 mt-6 max-w-md">
+              <div className="p-4 rounded-xl bg-[#141219]/90 border border-white/10 backdrop-blur-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-white/30" />
+                <div className="text-xs font-mono text-zinc-500 uppercase tracking-widest">IDC Certified Range</div>
+                <div className="text-3xl font-black text-white mt-1 font-mono tracking-tight">140 <span className="text-sm text-emerald-400 font-normal">KM</span></div>
+                <div className="text-[10px] font-mono text-zinc-400 mt-1">Dual Mode Regen</div>
+              </div>
+
+              <div className="p-4 rounded-xl bg-[#141219]/90 border border-emerald-500/20 backdrop-blur-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-emerald-400" />
+                <div className="text-xs font-mono text-zinc-500 uppercase tracking-widest">Battery Swap</div>
+                <div className="text-3xl font-black text-emerald-400 mt-1 font-mono tracking-tight">&lt;60 <span className="text-sm text-white font-normal">SEC</span></div>
+                <div className="text-[10px] font-mono text-emerald-400/80 mt-1">Plug-and-Go Ready</div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* STEP 4: Chassis & Optics */}
+          <motion.div
+            style={{ opacity: step4Opacity, y: step4Y, pointerEvents: step4Pointer }}
+            className="col-start-1 row-start-1 flex flex-col justify-start max-w-xl py-6"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-[11px] font-mono tracking-[0.25em] uppercase text-emerald-400 font-medium">
+                4.CHASSIS
+              </span>
+            </div>
+
+            <h2 className="text-3xl sm:text-5xl lg:text-[3.25rem] font-black text-white tracking-tight uppercase leading-[1.08]">
+              Aero Fairings <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
+                & Matrix LED Array
+              </span>
+            </h2>
+
+            <p className="mt-4 text-[#9e9aa6] text-sm sm:text-base leading-relaxed max-w-md border-l-2 border-emerald-500/30 pl-4">
+              Quick-replace composite panels with aerodynamic contours and high-luminance projector optics for zero-compromise urban safety.
             </p>
 
             <div className="flex flex-wrap items-center gap-4 mt-8">
-              <button className="px-8 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm tracking-wide transition-all shadow-[0_0_30px_rgba(16,185,129,0.35)] hover:-translate-y-0.5 active:translate-y-0">
-                Book Test Ride
+              <button className="px-8 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold font-mono text-xs uppercase tracking-widest transition-all shadow-[0_0_25px_rgba(16,185,129,0.4)] active:scale-[0.98]">
+                Configure Ride ↗
               </button>
-              <button className="px-7 py-3.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-white font-semibold text-sm border border-white/10 transition-all">
-                Download App
-              </button>
-            </div>
-
-            <div className="flex items-center gap-2 mt-12 text-[11px] font-mono text-zinc-500 tracking-wider uppercase">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              Scroll to explore architecture
-            </div>
-          </motion.div>
-
-          {/* STEP 2: Modular Hub Motor */}
-          <motion.div
-            style={{ opacity: step2Opacity, y: step2Y }}
-            className="absolute inset-x-6 sm:inset-x-12 md:inset-x-16 lg:left-20 lg:right-8 flex flex-col justify-center pointer-events-auto"
-          >
-            <span className="text-xs font-mono font-bold text-emerald-400 tracking-[0.25em] uppercase mb-2">
-              Powertrain Spec • 01
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
-              Modular Hubcontrol <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
-                Instant PMSM Motor
-              </span>
-            </h2>
-            <p className="mt-4 text-zinc-400 text-sm sm:text-base leading-relaxed max-w-md">
-              Synchronous high-efficiency motor engineered directly into the wheel assembly for instantaneous pickup and smooth incline climb.
-            </p>
-
-            <div className="grid grid-cols-2 gap-3 mt-6 max-w-sm">
-              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-md">
-                <div className="text-2xl font-black text-white">4.2 kW</div>
-                <div className="text-[11px] font-mono text-zinc-500 uppercase mt-0.5">Peak Output</div>
-              </div>
-              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-md">
-                <div className="text-2xl font-black text-emerald-400">85 Nm</div>
-                <div className="text-[11px] font-mono text-zinc-500 uppercase mt-0.5">Instant Torque</div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* STEP 3: Battery & Smart ECU */}
-          <motion.div
-            style={{ opacity: step3Opacity, y: step3Y }}
-            className="absolute inset-x-6 sm:inset-x-12 md:inset-x-16 lg:left-20 lg:right-8 flex flex-col justify-center pointer-events-auto"
-          >
-            <span className="text-xs font-mono font-bold text-emerald-400 tracking-[0.25em] uppercase mb-2">
-              Energy & Intelligence • 02
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
-              Integrated Battery <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
-                & Advanced ECU
-              </span>
-            </h2>
-            <p className="mt-4 text-zinc-400 text-sm sm:text-base leading-relaxed max-w-md">
-              IP67-rated cylindrical cell array with continuous thermal monitoring and sub-60-second dock swapping at Bijliride hubs.
-            </p>
-
-            <div className="grid grid-cols-2 gap-3 mt-6 max-w-sm">
-              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-md">
-                <div className="text-2xl font-black text-white">140 km</div>
-                <div className="text-[11px] font-mono text-zinc-500 uppercase mt-0.5">Range Per Swap</div>
-              </div>
-              <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 backdrop-blur-md">
-                <div className="text-2xl font-black text-emerald-400">&lt; 60s</div>
-                <div className="text-[11px] font-mono text-zinc-500 uppercase mt-0.5">Swap Time</div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* STEP 4: Dual LED & Bodywork */}
-          <motion.div
-            style={{ opacity: step4Opacity, y: step4Y }}
-            className="absolute inset-x-6 sm:inset-x-12 md:inset-x-16 lg:left-20 lg:right-8 flex flex-col justify-center pointer-events-auto"
-          >
-            <span className="text-xs font-mono font-bold text-emerald-400 tracking-[0.25em] uppercase mb-2">
-              Chassis & Visibility • 03
-            </span>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight">
-              Modular Bodywork <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
-                & Dual LED Headlights
-              </span>
-            </h2>
-            <p className="mt-4 text-zinc-400 text-sm sm:text-base leading-relaxed max-w-md">
-              High-impact modular panels designed for quick maintenance, coupled with high-lux projector illumination.
-            </p>
-
-            <div className="flex flex-wrap items-center gap-4 mt-8">
-              <button className="px-8 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-sm tracking-wide transition-all shadow-[0_0_30px_rgba(16,185,129,0.4)] hover:-translate-y-0.5 active:translate-y-0">
-                Reserve Your EV Now
-              </button>
-              <button className="px-6 py-3.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-white font-semibold text-sm border border-white/10 transition-all">
-                Find Nearest Hub
+              <button className="px-7 py-3.5 rounded-xl bg-[#17151d] hover:bg-[#201e27] text-zinc-200 font-mono text-xs uppercase tracking-wider border border-white/10 transition-all">
+                Locate Hubs
               </button>
             </div>
           </motion.div>

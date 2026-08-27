@@ -1,20 +1,19 @@
-/**
- * This file is the entry point for the React app, it sets up the root
- * element and renders the App component to the DOM.
- *
- * It is included in `src/index.html`.
- */
+import { createRoot, type Root } from "react-dom/client";
+import App from "./App";
+import { BrowserRouter } from "react-router-dom";
 
-import { createRoot } from "react-dom/client";
-import  App from "./App";
+const container = document.getElementById("root")!;
 
-function start() {
-  const root = createRoot(document.getElementById("root")!);
-  root.render(<App />);
+// Global store taaki HMR reload hone par duplicate root create na ho
+declare global {
+  var __reactRoot: Root | undefined;
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", start);
-} else {
-  start();
-}
+const root = globalThis.__reactRoot ?? createRoot(container);
+globalThis.__reactRoot = root;
+
+root.render(
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
+);
